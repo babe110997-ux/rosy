@@ -1,0 +1,92 @@
+## HAR Analysis Summary - queenking.ph.har
+
+### Overview
+- Total requests: 28
+- HTTP status:
+  - 200: 24
+  - 204: 4
+- No 4xx or 5xx errors found
+
+### Main Domains
+- Main business domain: `prod4.queenking.ph`
+- Realtime/push domain: `pusher.gemgame.club`
+- Local security noise:
+  - `gc.kes.v2.scr.kaspersky-labs.com`
+
+### Main Findings
+1. The session appears to be an **authenticated user session**.
+   - `/api/v2/user/profile` returns a valid user profile
+   - `/api/v2/user/limit-settings` returns user-specific limit data
+   - `/api/v2/user/model/wallet` returns wallet balances
+   - No `Unauthenticated` business response found
+
+2. Core site initialization/config APIs are working normally via `/api/v2/user/bulk`.
+   - site settings
+   - firebase config
+   - template/banner/platform-related data
+   - user pusher config
+   - promotion/config modules
+
+3. Popup APIs return **empty data** in this session.
+   - `/api/v2/user/popups?sorts={"weight":"desc"}`
+   - `/api/v2/user/popups?conditions={"name":"download_app"}...`
+   - Result: no popup data available for this user/session
+
+4. Promotions are mixed.
+   - Active promotion data exists, for example:
+     - `daily_check_in`
+     - `royal_task`
+     - deposit-related promotion data
+   - Some promotion queries return empty data, for example:
+     - `vip_avatar`
+
+5. Game APIs return valid non-empty data.
+   - game list content is available
+   - examples include:
+     - `Super Ace`
+     - `Zombie School Megaways`
+
+6. User data is valid and loaded successfully.
+   - profile exists
+   - wallet exists
+   - limit settings exist
+   - promotion reward query returns valid empty structure when no reward records are found
+
+### Conclusion
+This HAR represents a **logged-in homepage/session with valid user context**.
+The backend is functioning normally.
+No HTTP failure is present.
+Popup data is empty in this session.
+Profile, wallet, game, and promotion-related APIs all return successfully.
+
+### Cypress Implication
+This HAR is suitable for:
+- authenticated homepage smoke test
+- logged-in profile/state validation
+- wallet/state validation
+- game section validation
+- promotion data validation
+- empty-popup behavior validation
+
+This HAR is not ideal for:
+- popup display validation with active popup data
+- login request validation itself
+- recharge/withdraw transaction flow
+
+### Recommended Cypress Intercepts
+- `**/api/v2/user/bulk`
+- `**/api/v2/user/profile**`
+- `**/api/v2/user/limit-settings**`
+- `**/api/v2/user/model/wallet**`
+- `**/api/v2/user/popups**`
+- `**/api/v2/user/promotions**`
+- `**/api/v2/user/entertainment/games**`
+
+### Suggested Assertions
+- homepage loads successfully
+- profile API returns valid logged-in user data
+- wallet API returns valid balance structure
+- limit-settings API returns 200 with user-specific data
+- popup API returns empty list in this session
+- promotions API may return mixed results depending on promotion name
+- games API returns non-empty list
